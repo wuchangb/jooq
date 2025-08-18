@@ -1,7 +1,6 @@
 package com.example.jooq.actor;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import java.util.Collections;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -35,5 +34,40 @@ class ActorRepositoryTest {
 		List<Actor> actors = actorRepository.findByFirstNameOrLastName(firstName, lastName);
 
 		Assertions.assertThat(actors).hasSizeGreaterThan(1);
+	}
+
+	@Test
+	void test_3() {
+		List<Actor> actors = actorRepository.findByActorIdIn(List.of(1L));
+
+		Assertions.assertThat(actors).hasSize(1);
+	}
+
+	@Test
+	void test_4() {
+		List<Actor> actors = actorRepository.findByActorIdIn(Collections.EMPTY_LIST);
+
+		Assertions.assertThat(actors).hasSizeGreaterThan(1);
+	}
+
+	@Test
+	void test_5() {
+		var searchOption = ActorFilmographySearchCondition.builder()
+			.actorName("LOLLOBRIGIDA")
+			.build();
+
+		List<ActorFilmography> actorFilmographies = actorRepository.findActorFilmography(searchOption);
+		Assertions.assertThat(actorFilmographies).hasSize(1);
+	}
+
+	@Test
+	void test_6() {
+		var searchOption = ActorFilmographySearchCondition.builder()
+			.actorName("LOLLOBRIGIDA")
+			.fileTitle("COMMANDMENTS EXPRESS")
+			.build();
+
+		List<ActorFilmography> actorFilmographies = actorRepository.findActorFilmography(searchOption);
+		Assertions.assertThat(actorFilmographies).hasSize(1);
 	}
 }
