@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  sakila-mariadb:
+    image: mariadb:11.4
+    platform: linux/amd64
+    ports:
+      - "3307:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: passwd
+      MARIADB_DATABASE: sakila
+      TZ: Asia/Seoul
+    volumes:
+      # 기존 볼륨 이름을 그대로 쓰되, MariaDB의 기본 데이터 디렉토리(/var/lib/mysql)에 마운트합니다.
+      - sakila_volume:/var/lib/mysql
+    command:
+      [
+        "mariadbd",
+        "--character-set-server=utf8mb4",
+        "--collation-server=utf8mb4_unicode_ci",
+        "--lower_case_table_names=1"
+      ]
+volumes:
+  sakila_volume:

@@ -1,0 +1,135 @@
+buildscript {
+	ext {
+		jooqVersion = '3.19.24'
+	}
+}
+
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.4'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'nu.studer.jooq' version '9.0'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'Demo project for Spring Boot'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	implementation 'org.springframework.boot:spring-boot-starter-jooq'
+
+	runtimeOnly   'org.mariadb.jdbc:mariadb-java-client'
+	jooqGenerator 'org.mariadb.jdbc:mariadb-java-client'
+
+	// (선택) 코드젠에서 jOOQ 라이브러리 명시 — 보통은 생략 가능하지만, 버전 고정 원하실 때 사용
+	jooqGenerator project(':jooq-custom')
+	jooqGenerator "org.jooq:jooq:${jooqVersion}"
+	jooqGenerator "org.jooq:jooq-meta:${jooqVersion}"
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+String dbUser   = System.properties["db-user"]   ?: "root"
+String dbPasswd = System.properties["db-passwd"] ?: "passwd"
+jooq {
+	// v9 DSL: 프로퍼티 기반 설정
+	version.set("${jooqVersion}")
+
+	configurations {
+		// 이 이름으로 generate 태스크가 생깁니다: generateJooq
+		create("main") {
+			// 필요 시 컴파일 전에 자동 생성하려면 아래 라인 대신 컴파일 태스크에 dependsOn 설정을 사용
+			// generateSchemaSourceOnCompilation.set(true)
+
+			generationTool {
+				// === JDBC 연결정보 ===
+				jdbc {
+					driver = "org.mariadb.jdbc.Driver"
+					// 환경변수 우선, 없으면 기본값 사용
+					url = System.getenv("DB_URL") ?: "jdbc:mariadb://127.0.0.1:3307/sakila"
+					user = System.getenv("DB_USER") ?: "root"
+					password = System.getenv("DB_PASSWORD") ?: "passwd"
+				}
+
+				// === 코드 생성기 ===
+				generator {
+					name = "org.jooq.codegen.DefaultGenerator"
+
+					database {
+						// MariaDB 메타데이터 리더
+						name = "org.jooq.meta.mariadb.MariaDBDatabase"
+						inputSchema = "sakila"
+						includes = ".*"
+						excludes = ""
+
+						forcedTypes {
+							forcedType {
+								name = 'BIGINT'
+								includeExpression = "sakila\\..*\\..*_id"
+							}
+							forcedType {
+								name = "INT"                              // Java Integer
+								includeExpression = "sakila\\.film\\.length"
+							}
+						}
+					}
+
+					// 생성 옵션
+					generate {
+						daos = true
+						records = true
+						pojos = true
+						immutablePojos = true
+						interfaces = false
+						fluentSetters = true
+						javaTimeTypes = true
+						deprecated = false
+					}
+
+					// 생성물 위치/패키지
+					target {
+						packageName = "com.example.jooq"
+						directory  = "src/generated"
+					}
+
+					strategy.name = 'com.example.jooqcustom.JPrefixGeneratorStrategy'
+				}
+			}
+		}
+	}
+}
+
+// 생성 코드 소스 경로 포함
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src/main/java', 'src/generated']
+		}
+	}
+}
+
+// 컴파일 전에 코드 생성되도록 의존 설정
+tasks.named('compileJava').configure {
+	it.dependsOn(tasks.named('generateJooq'))
+}
+tasks.named('compileTestJava').configure {
+	it.dependsOn(tasks.named('generateJooq'))
+}
