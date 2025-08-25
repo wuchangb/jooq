@@ -1,15 +1,22 @@
 package com.example.jooq.film;
 
+import static org.jooq.impl.DSL.*;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
+import org.jooq.DatePart;
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 
+import com.example.jooq.config.PriceCategoryConverter;
 import com.example.jooq.tables.JActor;
 import com.example.jooq.tables.JFilm;
 import com.example.jooq.tables.JFilmActor;
+import com.example.jooq.tables.JInventory;
+import com.example.jooq.tables.JRental;
 import com.example.jooq.tables.daos.FilmDao;
 import com.example.jooq.tables.pojos.Film;
 
@@ -48,15 +55,71 @@ public class FilmRepositoryHasA {
 		JActor ACTOR = JActor.ACTOR;
 
 		return dslContext.select(
-				DSL.row(FILM.fields()),
-				DSL.row(FILM_ACTOR.fields()),
-				DSL.row(ACTOR.fields())
+				row(FILM.fields()),
+				row(FILM_ACTOR.fields()),
+				row(ACTOR.fields())
 			)
 			.from(FILM)
 			.innerJoin(FILM_ACTOR).on(FILM_ACTOR.FILM_ID.eq(FILM.FILM_ID))
 			.innerJoin(ACTOR).on(ACTOR.ACTOR_ID.eq(FILM_ACTOR.ACTOR_ID))
-			.offset((page -1) * size)
+			.offset((page - 1) * size)
 			.limit(size)
 			.fetchInto(FilmWithActor.class);
+	}
+
+	public List<FilmPriceSummary> findFilmPriceSummaryByFilmTitle(String filmTitle) {
+		final JInventory INVENTORY = JInventory.INVENTORY;
+
+		return dslContext.select(
+				FILM.FILM_ID,
+				FILM.TITLE,
+				FILM.RENTAL_RATE,
+				case_()
+					.when(FILM.RENTAL_RATE.le(BigDecimal.valueOf(1.0)), "Cheap")
+					.when(FILM.RENTAL_RATE.le(BigDecimal.valueOf(1.0)), "Moderate")
+					.else_("Expensive").as("price_category").convert(new PriceCategoryConverter()),
+				selectCount().from(INVENTORY).where(INVENTORY.FILM_ID.eq(FILM.FILM_ID)).asField("total_inventory")
+			).from(FILM)
+			.where(FILM.TITLE.like("%" + filmTitle + "%"))
+			.fetchInto(FilmPriceSummary.class);
+	}
+
+	public List<FilmRentalSummary> findFilmRentalSummaryByFilmTitle(String filmTitle) {
+		JInventory INVENTORY = JInventory.INVENTORY;
+		JRental RENTAL = JRental.RENTAL;
+
+		var rentalDurationInfoSubquery = select(
+			INVENTORY.FILM_ID,
+			avg(localDateTimeDiff(DatePart.DAY, RENTAL.RENTAL_DATE, RENTAL.RETURN_DATE)).as("average_rental_duration")
+		)
+			.from(RENTAL)
+			.innerJoin(INVENTORY).on(RENTAL.INVENTORY_ID.eq(INVENTORY.INVENTORY_ID))
+			.where(RENTAL.RETURN_DATE.isNotNull())
+			.groupBy(INVENTORY.FILM_ID)
+			.asTable("rental_duration_info");
+
+		return dslContext.select(
+				FILM.FILM_ID,
+				FILM.TITLE,
+				rentalDurationInfoSubquery.field("average_rental_duration")
+			).from(FILM)
+			.join(rentalDurationInfoSubquery).on(FILM.FILM_ID.eq(rentalDurationInfoSubquery.field(INVENTORY.FILM_ID)))
+			.where(FILM.TITLE.like("%" + filmTitle + "%"))
+			.orderBy(DSL.field(DSL.name("average_rental_duration")).desc())
+			.fetchInto(FilmRentalSummary.class);
+	}
+
+	public List<Film> findRentedFilmByTitle(String filmTitle) {
+		JInventory INVENTORY = JInventory.INVENTORY;
+		JRental RENTAL = JRental.RENTAL;
+
+		return dslContext.selectFrom(FILM)
+			.whereExists(
+				DSL.selectOne().from(INVENTORY)
+					.leftJoin(RENTAL).on(RENTAL.INVENTORY_ID.eq(INVENTORY.INVENTORY_ID))
+					.where(INVENTORY.FILM_ID.eq(FILM.FILM_ID))
+			)
+			.and(FILM.TITLE.like("%" + filmTitle + "%"))
+			.fetchInto(Film.class);
 	}
 }
