@@ -97,7 +97,7 @@ jooq {
 						daos = true
 						records = true
 						pojos = true
-						immutablePojos = true
+						immutablePojos = false
 						interfaces = false
 						fluentSetters = true
 						javaTimeTypes = true

@@ -16,10 +16,12 @@ public class City implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final Long cityId;
-    private final String city;
-    private final Long countryId;
-    private final LocalDateTime lastUpdate;
+    private Long cityId;
+    private String city;
+    private Long countryId;
+    private LocalDateTime lastUpdate;
+
+    public City() {}
 
     public City(City value) {
         this.cityId = value.cityId;
@@ -48,10 +50,26 @@ public class City implements Serializable {
     }
 
     /**
+     * Setter for <code>sakila.city.city_id</code>.
+     */
+    public City setCityId(Long cityId) {
+        this.cityId = cityId;
+        return this;
+    }
+
+    /**
      * Getter for <code>sakila.city.city</code>.
      */
     public String getCity() {
         return this.city;
+    }
+
+    /**
+     * Setter for <code>sakila.city.city</code>.
+     */
+    public City setCity(String city) {
+        this.city = city;
+        return this;
     }
 
     /**
@@ -62,10 +80,26 @@ public class City implements Serializable {
     }
 
     /**
+     * Setter for <code>sakila.city.country_id</code>.
+     */
+    public City setCountryId(Long countryId) {
+        this.countryId = countryId;
+        return this;
+    }
+
+    /**
      * Getter for <code>sakila.city.last_update</code>.
      */
     public LocalDateTime getLastUpdate() {
         return this.lastUpdate;
+    }
+
+    /**
+     * Setter for <code>sakila.city.last_update</code>.
+     */
+    public City setLastUpdate(LocalDateTime lastUpdate) {
+        this.lastUpdate = lastUpdate;
+        return this;
     }
 
     @Override

@@ -16,9 +16,11 @@ public class Language implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final Long languageId;
-    private final String name;
-    private final LocalDateTime lastUpdate;
+    private Long languageId;
+    private String name;
+    private LocalDateTime lastUpdate;
+
+    public Language() {}
 
     public Language(Language value) {
         this.languageId = value.languageId;
@@ -44,6 +46,14 @@ public class Language implements Serializable {
     }
 
     /**
+     * Setter for <code>sakila.language.language_id</code>.
+     */
+    public Language setLanguageId(Long languageId) {
+        this.languageId = languageId;
+        return this;
+    }
+
+    /**
      * Getter for <code>sakila.language.name</code>.
      */
     public String getName() {
@@ -51,10 +61,26 @@ public class Language implements Serializable {
     }
 
     /**
+     * Setter for <code>sakila.language.name</code>.
+     */
+    public Language setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    /**
      * Getter for <code>sakila.language.last_update</code>.
      */
     public LocalDateTime getLastUpdate() {
         return this.lastUpdate;
+    }
+
+    /**
+     * Setter for <code>sakila.language.last_update</code>.
+     */
+    public Language setLastUpdate(LocalDateTime lastUpdate) {
+        this.lastUpdate = lastUpdate;
+        return this;
     }
 
     @Override

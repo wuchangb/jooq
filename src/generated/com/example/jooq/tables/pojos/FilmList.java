@@ -21,14 +21,16 @@ public class FilmList implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final UInteger fid;
-    private final String title;
-    private final String description;
-    private final String category;
-    private final BigDecimal price;
-    private final UShort length;
-    private final FilmListRating rating;
-    private final String actors;
+    private UInteger fid;
+    private String title;
+    private String description;
+    private String category;
+    private BigDecimal price;
+    private UShort length;
+    private FilmListRating rating;
+    private String actors;
+
+    public FilmList() {}
 
     public FilmList(FilmList value) {
         this.fid = value.fid;
@@ -69,10 +71,26 @@ public class FilmList implements Serializable {
     }
 
     /**
+     * Setter for <code>sakila.film_list.FID</code>.
+     */
+    public FilmList setFid(UInteger fid) {
+        this.fid = fid;
+        return this;
+    }
+
+    /**
      * Getter for <code>sakila.film_list.title</code>.
      */
     public String getTitle() {
         return this.title;
+    }
+
+    /**
+     * Setter for <code>sakila.film_list.title</code>.
+     */
+    public FilmList setTitle(String title) {
+        this.title = title;
+        return this;
     }
 
     /**
@@ -83,10 +101,26 @@ public class FilmList implements Serializable {
     }
 
     /**
+     * Setter for <code>sakila.film_list.description</code>.
+     */
+    public FilmList setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+
+    /**
      * Getter for <code>sakila.film_list.category</code>.
      */
     public String getCategory() {
         return this.category;
+    }
+
+    /**
+     * Setter for <code>sakila.film_list.category</code>.
+     */
+    public FilmList setCategory(String category) {
+        this.category = category;
+        return this;
     }
 
     /**
@@ -97,10 +131,26 @@ public class FilmList implements Serializable {
     }
 
     /**
+     * Setter for <code>sakila.film_list.price</code>.
+     */
+    public FilmList setPrice(BigDecimal price) {
+        this.price = price;
+        return this;
+    }
+
+    /**
      * Getter for <code>sakila.film_list.length</code>.
      */
     public UShort getLength() {
         return this.length;
+    }
+
+    /**
+     * Setter for <code>sakila.film_list.length</code>.
+     */
+    public FilmList setLength(UShort length) {
+        this.length = length;
+        return this;
     }
 
     /**
@@ -111,10 +161,26 @@ public class FilmList implements Serializable {
     }
 
     /**
+     * Setter for <code>sakila.film_list.rating</code>.
+     */
+    public FilmList setRating(FilmListRating rating) {
+        this.rating = rating;
+        return this;
+    }
+
+    /**
      * Getter for <code>sakila.film_list.actors</code>.
      */
     public String getActors() {
         return this.actors;
+    }
+
+    /**
+     * Setter for <code>sakila.film_list.actors</code>.
+     */
+    public FilmList setActors(String actors) {
+        this.actors = actors;
+        return this;
     }
 
     @Override
